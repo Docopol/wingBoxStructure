@@ -18,7 +18,7 @@ sheet = np.array([[0.2, 0.0004, 0.4, 0.0008], [0.0004, 0.075, 0.0008, 0.1484], [
 #You can modify the number of stringers
 
 nbStringersTop = 2
-nbStringersBot = 2
+nbStringersBot = 5
 
 #Do not modify these
 

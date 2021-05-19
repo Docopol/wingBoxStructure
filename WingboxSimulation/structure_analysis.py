@@ -1,11 +1,14 @@
 import numpy as np
 
-maxForce = 3.3e3
-bucklingForce = 3e3
+maxForce = 3e3
+# maxForce = 1650
+
 
 #Whiffle tree
 
-attachmentPositions = np.array([[-3e3, 1.0375e3, 1.0375e3, 0.6166e3, 0.30833e3], [0, 0.45, 1.05, 1.75, 2.35]], dtype=np.float32)
+attachmentPositions = np.array([[-maxForce, 1.0375e3, 1.0375e3, 0.6166e3, 0.30833e3], [0, 0.45, 1.05, 1.75, 2.35]], dtype=np.float32)
+attachmentPositions[0] /= 2
+print(attachmentPositions[0])
 
 #Shear force diagram in beam
 
@@ -16,7 +19,7 @@ def shearDiagram(position):
 #Bending force diagram in beam
 
 def bendingDiagram(position):
-    bendingAtPosition = 3e3 * 1.12 - sum(attachmentPositions[0][position >= attachmentPositions[1][:]] * attachmentPositions[1][position >= attachmentPositions[1][:]])
+    bendingAtPosition = maxForce / 2 * 1.12 - sum(attachmentPositions[0][position >= attachmentPositions[1][:]] * attachmentPositions[1][position >= attachmentPositions[1][:]])
     return bendingAtPosition
 
 def cgCalculator(structuralElements):
