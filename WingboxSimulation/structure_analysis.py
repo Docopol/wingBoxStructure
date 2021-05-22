@@ -1,14 +1,74 @@
 import numpy as np
 
-maxForce = 3e3
-# maxForce = 1650
+bucklingForce = 3e3
+positionForce = 1.12
+
+#Whiffle tree, format (starts position, end position, position of the applied force, magnitude of the applied force)
+
+class Node:
+    
+    numberAttachPoints = 4 #Must be a power of two
+    
+    def __init__(self, dataInit): #Initilizes tree with root node
+        
+        self.left = None 
+        self.right = None
+        self.data = dataInit
+        forceTopTree = dataInit[3]
+    
+    def Insert(self, dataExtraNode): #Adds nodes liked to the tree
+        
+        if self.data:
+            if dataExtraNode[2] < self.data[2]:
+                if self.left is None:
+                    newForce = round((self.data[3]*abs(self.data[2]-self.data[1]))/abs(self.data[1]-self.data[0]), 2)
+                    dataExtraNode[3] = newForce
+                    self.left = Node(dataExtraNode)
+                else:
+                    self.left.Insert(dataExtraNode)
+            elif dataExtraNode[2] > self.data[2]:
+                if self.right is None:
+                    newForce = round((self.data[3]*abs(self.data[2]-self.data[0]))/abs(self.data[1]-self.data[0]), 2)
+                    dataExtraNode[3] = newForce
+                    self.right = Node(dataExtraNode)
+                else:
+                    self.right.Insert(dataExtraNode)
+        else:
+            self.data = data
+    
+    def __CalculateEndLoads(self, node, endLoad): #Shout out to jcbd0101 for his contribution to make this work
+        if((node.left is None) and (node.right is None)):
+            endLoad[:, int(endLoad[0, 0]+1)] = np.array([node.data[3], node.data[2]])
+            endLoad[0, 0] += 1
+        else:
+            self.__CalculateEndLoads(node.left, endLoad)
+            self.__CalculateEndLoads(node.right, endLoad)
+    
+    def PrintEndLoads(self): #Prints the attachment points and the respective applied loads
+        start = self
+        endLoad = np.zeros(shape = (2, self.numberAttachPoints+1))
+        self.__CalculateEndLoads(start, endLoad)
+        return np.delete(endLoad, 0, axis=1)
+    
+    def PrintTree(self): #Prints tree from left to right
+        if self.left:
+            self.left.PrintTree()
+        print( self.data),
+        if self.right:
+            self.right.PrintTree()
+
+root = Node([0.75, 1.95, positionForce, bucklingForce])
+
+root.Insert([0.45, 1.05, 0.75, 0])
+root.Insert([1.75, 2.35, 1.95, 0])
+root.Insert([0.45, 0.45, 0.45, 0])
+root.Insert([1.05, 1.05, 1.05, 0])
+root.Insert([1.75, 1.75, 1.75, 0])
+root.Insert([2.35, 2.35, 2.35, 0])
 
 
-#Whiffle tree
-
-attachmentPositions = np.array([[-maxForce, 1.0375e3, 1.0375e3, 0.6166e3, 0.30833e3], [0, 0.45, 1.05, 1.75, 2.35]], dtype=np.float32)
-attachmentPositions[0] /= 2
-print(attachmentPositions[0])
+attachmentPositions = np.insert(root.PrintEndLoads(), [0], [[-bucklingForce], [0]], axis=1)
+#attachmentPositions = np.array([[-maxForce, 1.0375e3, 1.0375e3, 0.6166e3, 0.30833e3], [0, 0.45, 1.05, 1.75, 2.35]], dtype=np.float32)
 
 #Shear force diagram in beam
 
@@ -19,7 +79,7 @@ def shearDiagram(position):
 #Bending force diagram in beam
 
 def bendingDiagram(position):
-    bendingAtPosition = maxForce / 2 * 1.12 - sum(attachmentPositions[0][position >= attachmentPositions[1][:]] * attachmentPositions[1][position >= attachmentPositions[1][:]])
+    bendingAtPosition = bucklingForce  * positionForce - sum(attachmentPositions[0][position >= attachmentPositions[1][:]] * attachmentPositions[1][position >= attachmentPositions[1][:]])
     return bendingAtPosition
 
 def cgCalculator(structuralElements):
