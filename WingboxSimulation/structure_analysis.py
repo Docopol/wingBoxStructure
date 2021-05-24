@@ -55,8 +55,7 @@ class Node:
         if self.right:
             self.right.PrintTree()
 
-
-#attachmentPositions = np.array([[-maxForce, 1.0375e3, 1.0375e3, 0.6166e3, 0.30833e3], [0, 0.45, 1.05, 1.75, 2.35]], dtype=np.float32)
+#Wingbox class : gets a list of rectangular structural elements in format [[xCg, yCg, xLength, yLength]] and the loads applied in format [[load1, load2, load3....], [position1, position2,  ....]]
 
 class Wingbox:
 
@@ -123,26 +122,30 @@ class Wingbox:
             cgPart = self.cgCalculator(structuralElementsCut)[0]
             return abs(cgReference[0]-cgPart)*sum(structuralElementsCut[:, 2]*structuralElementsCut[:, 3])
 
-    def normalBendingStress(self, positionFromRoot, structuralElements, axis):
+    def normalBendingStress(self, positionFromRoot, structuralElements, axis, height=None):
         if(axis == 'x'):
             SMA = self.secondMomentAreaAssembly(structuralElements, axis)
             neutralAxisPosition = self.cgCalculator(structuralElements)[1]
-            if(neutralAxisPosition > 0.15 - neutralAxisPosition):
-                return self.bendingDiagram(positionFromRoot)*neutralAxisPosition/SMA
-            else:
-                return self.bendingDiagram(positionFromRoot)*(0.15-neutralAxisPosition)/SMA
-        else:  #this part is not yet finished
+            if(height != None):
+                return self.bendingDiagram(positionFromRoot)*abs(neutralAxisPosition-height)/SMA
+            else:    
+                if(neutralAxisPosition > 0.15 - neutralAxisPosition): #Stress is always the biggest the furthest from the neutralaxis
+                    return self.bendingDiagram(positionFromRoot)*neutralAxisPosition/SMA
+                else:
+                    return self.bendingDiagram(positionFromRoot)*(0.15-neutralAxisPosition)/SMA
+        else:  #this part is not yet finished and will yield incoherent results
             SMA = self.secondMomentAreaAssembly(structuralElements, axis)
             neutralAxisPosition = self.cgCalculator(structuralElements)[0]
-            print(neutralAxisPosition)
-            if(neutralAxisPosition > 0.15 - neutralAxisPosition):
-                return self.bendingDiagram(positionFromRoot)*neutralAxisPosition/SMA
+            if(height != None):
+                return self.bendingDiagram(positionFromRoot)*abs(neutralAxisPosition-height)/SMA
             else:
-                return self.bendingDiagram(positionFromRoot)*(0.15-neutralAxisPosition)/SMA
+                if(neutralAxisPosition > 0.15 - neutralAxisPosition):
+                    return self.bendingDiagram(positionFromRoot)*neutralAxisPosition/SMA
+                else:
+                    return self.bendingDiagram(positionFromRoot)*(0.15-neutralAxisPosition)/SMA
             
     def shearStress(self, positionFromRoot, structuralElements, height, axis):
         SMA = self.secondMomentAreaAssembly(structuralElements, axis)
         FMA = self.firstMomentAreaAssembly(structuralElements, axis, height)
         maxShear = self.shearDiagram(positionFromRoot)*FMA/(SMA*0.0015)
-        
         return maxShear
