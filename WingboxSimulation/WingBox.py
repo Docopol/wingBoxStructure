@@ -6,11 +6,12 @@ import structure_analysis as sa
 #Applied load on structure (can be modified)
 
 bucklingForce = 3e3
-positionForce = 1.12
+positionForceX = 1.12
+positionForceY = 0.175
 
 #Whiffle tree setup 
 
-root = sa.Node([0.75, 1.95, positionForce, bucklingForce])
+root = sa.Node([0.75, 1.95, positionForceX, bucklingForce])
 
 root.Insert([0.45, 1.05, 0.75, 0])
 root.Insert([1.75, 2.35, 1.95, 0])
@@ -19,7 +20,8 @@ root.Insert([1.05, 1.05, 1.05, 0])
 root.Insert([1.75, 1.75, 1.75, 0])
 root.Insert([2.35, 2.35, 2.35, 0])
 
-attachmentPositions = np.insert(root.PrintEndLoads(), [0], [[bucklingForce, -bucklingForce], [positionForce, 0]], axis=1) #Adds the reaction forces and the end at index[1] and index[0] is for storing position force
+attachmentPositions = np.insert(root.PrintEndLoads(), [0], [[bucklingForce, -bucklingForce], [positionForceX, 0]], axis=1) #Adds the reaction forces and the end at index[1] and index[0] is for storing position force
+#attachmentPositions = np.insert(attachmentPositions, [2], np.full((1, )))
 
 #Format for elements xCg, yCg, xLength, yLength
 
@@ -47,5 +49,5 @@ wingBox = sa.Wingbox(wingAssembly, attachmentPositions)
 #Output: you can modify freely
 
 print(f'The second moment of area of the cross-section is {wingBox.secondMomentAreaAssembly(wingBox.structuralElements,"x")} m^4')
-print(f'Normal stress: {wingBox.normalBendingStress(0.001, wingBox.structuralElements, "x", 0.149)/1e6} MPa') #Parameters (0.001 = distance from clamping side, height=optional if not specified will return max stress)
-print(f'Shear stress: {wingBox.shearStress(0.001, wingBox.structuralElements, 0.075, "x")/1e6} MPa') #Parameters (0.001 = distance from clamping side, 0.075 = height from the bottom)
+print(f'Normal stress: {wingBox.normalBendingStress(0.001, "x", 0.149)/1e6} MPa') #Parameters (0.001 = distance from clamping side, height=optional if not specified will return max stress)
+print(f'Shear stress: {wingBox.shearStressDueToShearForce(0.001, 0.075, "x")/1e6} MPa') #Parameters (0.001 = distance from clamping side, 0.075 = height from the bottom, axis)
