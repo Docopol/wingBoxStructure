@@ -67,17 +67,21 @@ class Wingbox:
     #Shear force diagram in beam
 
     def shearDiagram(self, position):
-        shearAtPosition = -sum(self.loadApplied[0][position >= self.loadApplied[1][:]])
+        mask = position >= self.loadApplied[1, :]
+        mask[0] = False
+        shearAtPosition = -sum(self.loadApplied[0, mask])
         return shearAtPosition
     
     #Bending force diagram in beam
 
     def momentDiagram(self, position, momentType):
+        mask = position >= self.loadApplied[1, :]
+        mask[0] = False
         if(momentType == 'bending'):
-            bendingAtPosition = self.loadApplied[0, 0]  * self.loadApplied[1, 0] - sum(self.loadApplied[0][position >= self.loadApplied[1][:]] * self.loadApplied[1][position >= self.loadApplied[1][:]])
+            bendingAtPosition = self.loadApplied[0, 0]  * self.loadApplied[1, 0] - sum(self.loadApplied[0, mask] * self.loadApplied[1, mask])
             return bendingAtPosition
         if(momentType == 'torsion'): 
-            torsionAtPosition = self.loadApplied[0, 0] * self.loadApplied[2, 0] - sum(self.loadApplied[0][position >= self.loadApplied[2][:]] * self.loadApplied[2][position >= self.loadApplied[2][:]])
+            torsionAtPosition = self.loadApplied[0, 0] * self.loadApplied[2, 0] - sum(self.loadApplied[0, mask] * self.loadApplied[2, mask])
             return torsionAtPosition
 
     def cgCalculator(self, structuralElements):

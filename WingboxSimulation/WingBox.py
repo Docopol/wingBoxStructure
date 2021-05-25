@@ -22,7 +22,6 @@ root.Insert([2.35, 2.35, 2.35, 0])
 
 attachmentPositions = np.insert(root.PrintEndLoads(), [0], [[bucklingForce, -bucklingForce], [positionForceX, 0]], axis=1) #Adds the reaction forces and the end at index[1] and index[0] is for storing position force
 attachmentPositions = np.insert(attachmentPositions, [2], np.full((1, 6), 0.025), axis=0) #This is accounts for the torsional moment but is hardcoded
-print(attachmentPositions)
 
 #Format for elements xCg, yCg, xLength, yLength
 
