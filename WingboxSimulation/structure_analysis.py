@@ -72,9 +72,13 @@ class Wingbox:
     
     #Bending force diagram in beam
 
-    def bendingDiagram(self, position):
-        bendingAtPosition = self.loadApplied[0, 0]  * self.loadApplied[1, 0] - sum(self.loadApplied[0][position >= self.loadApplied[1][:]] * self.loadApplied[1][position >= self.loadApplied[1][:]])
-        return bendingAtPosition
+    def momentDiagram(self, position, momentType):
+        if(momentType == 'bending'):
+            bendingAtPosition = self.loadApplied[0, 0]  * self.loadApplied[1, 0] - sum(self.loadApplied[0][position >= self.loadApplied[1][:]] * self.loadApplied[1][position >= self.loadApplied[1][:]])
+            return bendingAtPosition
+        if(momentType == 'torsion'): 
+            torsionAtPosition = self.loadApplied[0, 0] * self.loadApplied[2, 0] - sum(self.loadApplied[0][position >= self.loadApplied[2][:]] * self.loadApplied[2][position >= self.loadApplied[2][:]])
+            return torsionAtPosition
 
     def cgCalculator(self, structuralElements):
         structuralElements = np.concatenate((structuralElements, np.array([structuralElements[:, 2]*structuralElements[:, 3]]).T), axis=1)
@@ -126,22 +130,22 @@ class Wingbox:
             SMA = self.secondMomentAreaAssembly(self.structuralElements, axis)
             neutralAxisPosition = self.cgCalculator(self.structuralElements)[1]
             if(height != None):
-                return self.bendingDiagram(positionFromRoot)*abs(neutralAxisPosition-height)/SMA
+                return self.momentDiagram(positionFromRoot, 'bending')*abs(neutralAxisPosition-height)/SMA
             else:    
                 if(neutralAxisPosition > 0.15 - neutralAxisPosition): #Stress is always the biggest the furthest from the neutralaxis
-                    return self.bendingDiagram(positionFromRoot)*neutralAxisPosition/SMA
+                    return self.momentDiagram(positionFromRoot, 'bending')*neutralAxisPosition/SMA
                 else:
-                    return self.bendingDiagram(positionFromRoot)*(0.15-neutralAxisPosition)/SMA
+                    return self.momentDiagram(positionFromRoot, 'bending')*(0.15-neutralAxisPosition)/SMA
         else:  #this part is not yet finished and will yield incoherent results
             SMA = self.secondMomentAreaAssembly(self.structuralElements, axis)
             neutralAxisPosition = self.cgCalculator(self.structuralElements)[0]
             if(height != None):
-                return self.bendingDiagram(positionFromRoot)*abs(neutralAxisPosition-height)/SMA
+                return self.momentDiagram(positionFromRoot, 'bending')*abs(neutralAxisPosition-height)/SMA
             else:
                 if(neutralAxisPosition > 0.15 - neutralAxisPosition):
-                    return self.bendingDiagram(positionFromRoot)*neutralAxisPosition/SMA
+                    return self.momentDiagram(positionFromRoot, 'bending')*neutralAxisPosition/SMA
                 else:
-                    return self.bendingDiagram(positionFromRoot)*(0.15-neutralAxisPosition)/SMA
+                    return self.momentDiagram(positionFromRoot, 'bending')*(0.15-neutralAxisPosition)/SMA
             
     def shearStressDueToShearForce(self, positionFromRoot, height, axis):
         SMA = self.secondMomentAreaAssembly(self.structuralElements, axis)
@@ -152,7 +156,8 @@ class Wingbox:
         meanLength = np.max(self.structuralElements[0])- np.min(self.structuralElements[0])
         meanHeight = np.max(self.structuralElements[1])- np.min(self.structuralElements[1])
         meanArea = meanLength*meanHeight
+        torque = self.momentDiagram(positionFromRoot, "torsion")
         return torque/(meanArea*2*thickness)
 
     def shearStress(self, positionFromRoot, height, axis, thickness):
-        return shearStressDueToShearForce(positionFromRoot, height, axis) + shearStressDueToTorsion(positionFromRoot, positionFromRoot, thickness)
+        return self.shearStressDueToShearForce(positionFromRoot, height, axis) + self.shearStressDueToTorsion(positionFromRoot, thickness)

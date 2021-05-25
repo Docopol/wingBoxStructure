@@ -21,7 +21,8 @@ root.Insert([1.75, 1.75, 1.75, 0])
 root.Insert([2.35, 2.35, 2.35, 0])
 
 attachmentPositions = np.insert(root.PrintEndLoads(), [0], [[bucklingForce, -bucklingForce], [positionForceX, 0]], axis=1) #Adds the reaction forces and the end at index[1] and index[0] is for storing position force
-#attachmentPositions = np.insert(attachmentPositions, [2], np.full((1, )))
+attachmentPositions = np.insert(attachmentPositions, [2], np.full((1, 6), 0.025), axis=0) #This is accounts for the torsional moment but is hardcoded
+print(attachmentPositions)
 
 #Format for elements xCg, yCg, xLength, yLength
 
@@ -50,4 +51,6 @@ wingBox = sa.Wingbox(wingAssembly, attachmentPositions)
 
 print(f'The second moment of area of the cross-section is {wingBox.secondMomentAreaAssembly(wingBox.structuralElements,"x")} m^4')
 print(f'Normal stress: {wingBox.normalBendingStress(0.001, "x", 0.149)/1e6} MPa') #Parameters (0.001 = distance from clamping side, height=optional if not specified will return max stress)
-print(f'Shear stress: {wingBox.shearStressDueToShearForce(0.001, 0.075, "x")/1e6} MPa') #Parameters (0.001 = distance from clamping side, 0.075 = height from the bottom, axis)
+#print(f'Shear stress shear force: {wingBox.shearStressDueToShearForce(0.001, 0.075, "x")/1e6} MPa') #Parameters (0.001 = distance from clamping side, 0.075 = height from the bottom, axis)
+#print(f'Shear stress torsion {wingBox.shearStressDueToTorsion(0.001, 0.0008)/1e6} MPa')
+print(f'Maximal shear stress at position and height: {wingBox.shearStress(0.001, 0.075, "x", 0.0008)/1e6} MPa')
